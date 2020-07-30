@@ -8,15 +8,15 @@ import (
 )
 
 var (
-	b *tb.Bot
+	b      *tb.Bot
 	userID = &tb.Chat{ID: config.TelegramUserID}
 )
 
 type MessageFmt struct {
 	Subject string
-	Link string
-
+	Link    string
 }
+
 func init() {
 	var err error
 	b, err = tb.NewBot(tb.Settings{
@@ -29,8 +29,7 @@ func init() {
 	}
 }
 
-
 func MessageFormatting(msgFmt MessageFmt) string {
-	return fmt.Sprintf("%s\n" +
-		"%s",msgFmt.Subject, msgFmt.Link)
+	text := fmt.Sprintf("%s\n%s", msgFmt.Subject, msgFmt.Link)
+	return text
 }

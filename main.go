@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	"log"
 	"os"
@@ -14,7 +15,7 @@ var config Config
 func init() {
 	// Email config
 	flag.StringVar(&config.EmailServer, "email-server", os.Getenv("EMAIL_SERVER"), "Email server (example: mail.domain.com:993)")
-	flag.StringVar(&config.EmailLogin,"email-login", os.Getenv("EMAIL_LOGIN"), "The login of your email account")
+	flag.StringVar(&config.EmailLogin, "email-login", os.Getenv("EMAIL_LOGIN"), "The login of your email account")
 	flag.StringVar(&config.EmailPassword, "email-passowrd", os.Getenv("EMAIL_PASSWORD"), "The password of your email account")
 
 	// Telegram config
@@ -22,8 +23,7 @@ func init() {
 	flag.StringVar(&config.TelegramToken, "telegran-token", os.Getenv("TELEGRAM_TOKEN"), "Telegram bot token (https://core.telegram.org/bots/api)")
 
 	// Other
-	flag.BoolVar(&config.Verbose, "v", false, "Enable verbose/debug")
-
+	flag.BoolVar(&config.Verbose, "v", true, "Enable verbose/debug")
 
 	flag.Parse()
 	if config.TelegramUserID == 0 {
@@ -37,36 +37,29 @@ func init() {
 	if config.Verbose {
 		checkConfig := reflect.ValueOf(config)
 		typeOfS := checkConfig.Type()
-		for i := 0; i< checkConfig.NumField(); i++ {
+		for i := 0; i < checkConfig.NumField(); i++ {
 			log.Printf("Field: %s\tValue: %v\n", typeOfS.Field(i).Name, checkConfig.Field(i).Interface())
 		}
 	}
 
-
+	userID.ID = config.TelegramUserID
 }
 
-func main() {
+func dialClient() (*client.Client, func()) {
 	// Let's assume config is an IMAP client
 	log.Println("Connecting to server...")
 
 	// Connect to server
 	c, err := client.DialTLS(config.EmailServer, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if config.Verbose {
 		c.SetDebug(os.Stdout)
 	}
 
-	if err != nil {
-		log.Fatal(err)
-	}
 	log.Println("Connected")
-
-	// Don't forget to logout
-	defer func() {
-		err := c.Logout()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
 
 	// Login
 	if err := c.Login(config.EmailLogin, config.EmailPassword); err != nil {
@@ -79,7 +72,32 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mc := MailClient{Client:c}
-	mc.InitIdle()
-	mc.ListenForEmails()
+	return c, func() {
+		err := c.Logout() // Don't forget to logout
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
+func main() {
+	cIdle, cleanup1 := dialClient()
+	defer cleanup1()
+
+	cRead, cleanup2 := dialClient()
+	defer cleanup2()
+
+	updChan := make(chan imap.MailboxStatus, 10)
+	updChan <- imap.MailboxStatus{
+		Messages: 2856,
+	}
+	updChan <- imap.MailboxStatus{
+		Messages: 2856,
+	}
+
+	mc := IdleMailClient{Client: cIdle, UpdatesCh: updChan}
+	go mc.ListenForEmails()
+
+	rc := ReadClient{Client: cRead, Ch: updChan}
+	rc.Loop()
 }

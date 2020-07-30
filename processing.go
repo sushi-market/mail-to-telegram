@@ -2,10 +2,12 @@ package main
 
 import (
 	"github.com/emersion/go-imap"
+	"gopkg.in/tucnak/telebot.v2"
+	"html"
 	"log"
 )
 
-func MailProcessing(msg []byte, mail *imap.Message){
+func MailProcessing(msg []byte, mail *imap.Message) {
 	msgFmt := MessageFmt{
 		Subject: "",
 		Link:    "N/A",
@@ -14,7 +16,9 @@ func MailProcessing(msg []byte, mail *imap.Message){
 		msgFmt.Subject = mail.Envelope.Subject
 	}
 	msgFmt.Link = MailBodyProcessing(string(msg))
-	_, err := b.Send(userID, MessageFormatting(msgFmt))
+	tgBody := MessageFormatting(msgFmt)
+	tgBody = html.EscapeString(tgBody)
+	_, err := b.Send(userID, tgBody, telebot.ModeHTML)
 	if err != nil {
 		log.Fatal("telegram: ", err)
 		return
@@ -22,6 +26,5 @@ func MailProcessing(msg []byte, mail *imap.Message){
 }
 
 func MailBodyProcessing(msg string) string {
-	// You can customize message processing here
-	return "ok"
+	return msg
 }
