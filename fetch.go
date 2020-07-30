@@ -27,6 +27,8 @@ func (ec *IdleMailClient) ListenForEmails() {
 		if firstTime {
 			firstTime = false
 			ec.Index = mb.Messages
+
+			log.Println("First time index: ", ec.Index)
 		}
 
 		if mb.Messages <= ec.Index {
@@ -35,6 +37,7 @@ func (ec *IdleMailClient) ListenForEmails() {
 
 		for ec.Index < mb.Messages {
 			ec.Index += 1
+			log.Println("Index update: ", ec.Index)
 
 			(&ReadClient{Client: ec.Client}).Read(imap.MailboxStatus{Messages: ec.Index})
 			//ec.UpdatesCh <- imap.MailboxStatus{Messages: ec.Index}

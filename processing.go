@@ -29,6 +29,7 @@ func MailProcessing(msg []byte, mail *imap.Message) {
 
 	for _, tgBody := range arr {
 		tgBody = html.EscapeString(tgBody)
+		log.Println("Sending message to telegram, len=", len(tgBody))
 		_, err := b.Send(userID, tgBody, telebot.ModeHTML)
 		time.Sleep(time.Second)
 		if err != nil {
