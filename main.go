@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	"log"
 	"os"
@@ -23,7 +22,7 @@ func init() {
 	flag.StringVar(&config.TelegramToken, "telegran-token", os.Getenv("TELEGRAM_TOKEN"), "Telegram bot token (https://core.telegram.org/bots/api)")
 
 	// Other
-	flag.BoolVar(&config.Verbose, "v", true, "Enable verbose/debug")
+	flag.BoolVar(&config.Verbose, "v", false, "Enable verbose/debug")
 
 	flag.Parse()
 	if config.TelegramUserID == 0 {
@@ -81,23 +80,9 @@ func dialClient() (*client.Client, func()) {
 }
 
 func main() {
-	cIdle, cleanup1 := dialClient()
+	c, cleanup1 := dialClient()
 	defer cleanup1()
 
-	cRead, cleanup2 := dialClient()
-	defer cleanup2()
-
-	updChan := make(chan imap.MailboxStatus, 10)
-	updChan <- imap.MailboxStatus{
-		Messages: 2856,
-	}
-	updChan <- imap.MailboxStatus{
-		Messages: 2856,
-	}
-
-	mc := IdleMailClient{Client: cIdle, UpdatesCh: updChan}
-	go mc.ListenForEmails()
-
-	rc := ReadClient{Client: cRead, Ch: updChan}
-	rc.Loop()
+	mc := IdleMailClient{Client: c}
+	mc.ListenForEmails()
 }

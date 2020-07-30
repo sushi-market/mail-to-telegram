@@ -9,7 +9,6 @@ import (
 
 type IdleMailClient struct {
 	Client    *client.Client
-	UpdatesCh chan imap.MailboxStatus
 	Index     uint32
 }
 
@@ -30,15 +29,15 @@ func (ec *IdleMailClient) ListenForEmails() {
 			ec.Index = mb.Messages
 		}
 
-		ec.Index -= 1
-
 		if mb.Messages <= ec.Index {
 			continue
 		}
 
 		for ec.Index < mb.Messages {
 			ec.Index += 1
-			ec.UpdatesCh <- imap.MailboxStatus{Messages: ec.Index}
+
+			(&ReadClient{Client: ec.Client}).Read(imap.MailboxStatus{Messages: ec.Index})
+			//ec.UpdatesCh <- imap.MailboxStatus{Messages: ec.Index}
 		}
 	}
 

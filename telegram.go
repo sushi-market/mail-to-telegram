@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"github.com/emersion/go-imap"
 	tb "gopkg.in/tucnak/telebot.v2"
 	"log"
 	"time"
@@ -29,7 +29,19 @@ func init() {
 	}
 }
 
-func MessageFormatting(msgFmt MessageFmt) string {
-	text := fmt.Sprintf("%s\n%s", msgFmt.Subject, msgFmt.Link)
+func MessageFormatting(msgFmt MessageFmt, mail *imap.Message) string {
+	from := ""
+	if mail.Envelope != nil {
+		arr := mail.Envelope.From
+		if len(arr) > 0 && arr[0] != nil {
+			from = arr[0].Address()
+		}
+	}
+
+	text := ""
+	text += "Subject: " + msgFmt.Subject
+	text += "\nFrom: " + from
+	text += "\n"
+	text += "\n" + msgFmt.Link
 	return text
 }

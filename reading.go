@@ -26,7 +26,7 @@ func (rc *ReadClient) Read(mbox imap.MailboxStatus) {
 
 	seq := new(imap.SeqSet)
 	seq.AddNum(mbox.Messages)
-	err := rc.Client.Fetch(seq, []imap.FetchItem{imap.FetchRFC822}, messages)
+	err := rc.Client.Fetch(seq, []imap.FetchItem{imap.FetchRFC822, imap.FetchEnvelope}, messages)
 	if err != nil {
 		// Deal with error
 		log.Println("Fetch error: ", err)
