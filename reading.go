@@ -59,7 +59,6 @@ func (rc *ReadClient) EmailBodyParse(r io.Reader) []byte {
 		case *mail.InlineHeader:
 			// This is the message's text (can be plain-text or HTML)
 			b, _ := ioutil.ReadAll(p.Body)
-			log.Println("got text: ", string(b))
 			return b
 		case *mail.AttachmentHeader:
 			// This is an attachment
