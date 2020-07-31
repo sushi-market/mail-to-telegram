@@ -20,7 +20,7 @@ func (ec *IdleMailClient) ListenForEmails() {
 	for range time.NewTicker(tick).C {
 		mb, err := ec.Client.Select("INBOX", false)
 		if err != nil {
-			log.Println("Selecting mailbox error: ", err)
+			log.Fatal("Selecting mailbox error: ", err)
 			continue
 		}
 
