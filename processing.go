@@ -89,7 +89,7 @@ func splitLongLine(line string, limit int) []string {
 }
 
 func MailBodyProcessing(msg string) string {
-	text, err := html2text.FromString(msg, html2text.Options{PrettyTables: true})
+	text, err := html2text.FromString(msg)
 	if err != nil {
 		log.Println("failed to do html2text: ", err)
 		return msg
