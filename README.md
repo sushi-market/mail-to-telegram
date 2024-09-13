@@ -12,21 +12,7 @@
 ### Docker
 
 ```bash
-docker pull arthurwow/mailbot
-docker run --rm arthurwow/mailbot --help
-```
-
-### docker-compose
-
-docker-compose.yml
-```yml
-version: "3.7"
-services:
-  mailbot:
-    image: arthurwow/mailbot
-    env_file:
-      - .env
-    restart: always
+docker build -t df/mailbot:v1 .
 ```
 
 .env
@@ -36,10 +22,10 @@ EMAIL_LOGIN=your_email@yandex.ru
 EMAIL_PASSWORD=your_password
 TELEGRAM_TOKEN=123456789:AABB-telegram-bot-token-from-botfather
 TELEGRAM_USER_ID=1234567894
+README_TIMEOUT=15
 ```
 
 To start:
 ```bash
-docker-compose pull
-docker-compose up -d
+docker compose up -d
 ```

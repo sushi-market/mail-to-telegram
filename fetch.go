@@ -8,40 +8,33 @@ import (
 )
 
 type IdleMailClient struct {
-	Client    *client.Client
-	Index     uint32
+	Client *client.Client
+	Index  uint32
+}
+
+func (ec *IdleMailClient) ListenForEmailsTick() {
+	mb, err := ec.Client.Select("INBOX", false)
+	if err != nil {
+		log.Fatal("Selecting mailbox error: ", err)
+		return
+	}
+
+	if mb.UnseenSeqNum <= 0 {
+		return
+	}
+
+	ec.Index = mb.UnseenSeqNum
+
+	(&ReadClient{Client: ec.Client}).Read(imap.MailboxStatus{Messages: ec.Index})
 }
 
 func (ec *IdleMailClient) ListenForEmails() {
-	const tick = time.Second * 15
+	var tick = time.Second * config.ReadTimeout
 
-	firstTime := true
+	ec.ListenForEmailsTick()
 
 	for range time.NewTicker(tick).C {
-		mb, err := ec.Client.Select("INBOX", false)
-		if err != nil {
-			log.Fatal("Selecting mailbox error: ", err)
-			continue
-		}
-
-		if firstTime {
-			firstTime = false
-			ec.Index = mb.Messages
-
-			log.Println("First time index: ", ec.Index)
-		}
-
-		if mb.Messages <= ec.Index {
-			continue
-		}
-
-		for ec.Index < mb.Messages {
-			ec.Index += 1
-			log.Println("Index update: ", ec.Index)
-
-			(&ReadClient{Client: ec.Client}).Read(imap.MailboxStatus{Messages: ec.Index})
-			//ec.UpdatesCh <- imap.MailboxStatus{Messages: ec.Index}
-		}
+		ec.ListenForEmailsTick()
 	}
 
 	log.Fatal("idle main client exited")

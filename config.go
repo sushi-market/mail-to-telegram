@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 type Config struct {
 	// EmailServer: Example mail.domain.com:993
 	EmailServer    string
@@ -8,4 +10,5 @@ type Config struct {
 	TelegramUserID int64
 	TelegramToken  string
 	Verbose        bool
+	ReadTimeout    time.Duration
 }

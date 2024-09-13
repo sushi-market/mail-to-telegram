@@ -1,0 +1,6 @@
+services:
+  mailbot:
+    image: df/mailbot:v1
+    env_file:
+      - .env
+    restart: always
